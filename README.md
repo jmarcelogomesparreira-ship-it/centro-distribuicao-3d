@@ -46,7 +46,7 @@ Portaria → Pátio → Manobra → Carga/descarga → Conferência → NF → S
 
 - HTML, CSS e JavaScript puro, **sem framework e sem build**
 - [Three.js](https://threejs.org/) para o galpão 3D
-- [Leaflet](https://leafletjs.com/) + CARTO/OpenStreetMap para o mapa de rotas
+- [Leaflet](https://leafletjs.com/) + OpenStreetMap para o mapa de rotas
 - Gráficos desenhados em SVG, feitos à mão
 - Hospedagem no GitHub Pages
 

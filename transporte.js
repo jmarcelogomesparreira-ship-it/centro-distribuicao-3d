@@ -55,9 +55,10 @@ NX.telas.transporte = (function () {
       return null;
     }
     const mapa = L.map(div, { zoomControl: true, attributionControl: true, scrollWheelZoom: false }).setView([-20.2, -49.6], 6);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 12, subdomains: 'abcd',
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    // OpenStreetMap: livre, sem chave de API (escurecido via CSS em .mapa-escuro)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 12, className: 'mapa-escuro',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
     }).addTo(mapa);
     const camadas = { rotas: L.layerGroup().addTo(mapa), cidades: L.layerGroup().addTo(mapa), caminhoes: L.layerGroup().addTo(mapa) };
     L.marker(NX.CD.coord, {

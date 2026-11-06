@@ -637,3 +637,6 @@ body.modo-tv main { padding: 0; }
   #tv-cheia { display: none; }
 }
 @media (max-width: 860px) { .bt-tv { display: none; } }
+
+/* Mapa OSM claro convertido para tema escuro */
+.mapa-escuro { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.35); }
