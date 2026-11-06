@@ -4,9 +4,9 @@ Painel de operação de um centro de distribuição de **e-commerce e varejo**, 
 
 > Projeto de portfólio. Empresas, transportadoras, motoristas e números são **fictícios**. As cidades e distâncias são reais (região do Triângulo Mineiro, interior de SP, GO e MS).
 
-**[▶ Abrir o painel](https://jmarcelogomesparreira.github.io/nexus-cd/)**
+**[▶ Abrir o painel](https://jmarcelogomesparreira.github.io/centro-distribuicao-3d/)**
 
-![Modo TV](img/modo-tv.jpg)
+![Modo TV](modo-tv.jpg)
 
 ---
 
@@ -23,9 +23,9 @@ Painel de operação de um centro de distribuição de **e-commerce e varejo**, 
 | **Armazém** | Mapa de ocupação por rua, histórico de temperatura das câmaras, curva ABC, validade (FEFO), inventário rotativo, segurança do trabalho (NBR 14280, NR-11, pausa térmica do art. 253 da CLT) |
 | **Modo TV** | Resumo em uma tela 16:9 para televisão do setor, com alertas automáticos |
 
-![Galpão 3D](img/galpao-3d.jpg)
+![Galpão 3D](galpao-3d.jpg)
 
-![Docas](img/docas.jpg)
+![Docas](docas.jpg)
 
 ## Como a simulação funciona
 
@@ -53,20 +53,20 @@ Portaria → Pátio → Manobra → Carga/descarga → Conferência → NF → S
 ## Estrutura
 
 ```
-index.html          esqueleto, menu e cabeçalho
-css/estilo.css      visual (tema escuro, responsivo)
-js/dados.js         cadastros: docas, transportadoras, fornecedores, destinos, cidades
-js/simulador.js     motor da operação ao vivo e cálculo dos KPIs
-js/graficos.js      gráficos SVG reaproveitáveis
-js/geral.js         tela Visão geral
-js/cena3d.js        galpão 3D
-js/docas.js         tela Docas
-js/fiscal.js        tela Fiscal
-js/energia.js       tela Energia
-js/transporte.js    tela Transporte
-js/armazem.js       tela Armazém
-js/tv.js            Modo TV
-js/app.js           navegação, relógio e velocidade
+index.html       esqueleto, menu e cabeçalho
+estilo.css       visual (tema escuro, responsivo)
+dados.js         cadastros: docas, transportadoras, fornecedores, destinos, cidades
+simulador.js     motor da operação ao vivo e cálculo dos KPIs
+graficos.js      gráficos SVG reaproveitáveis
+geral.js         tela Visão geral
+cena3d.js        galpão 3D
+docas.js         tela Docas
+fiscal.js        tela Fiscal
+energia.js       tela Energia
+transporte.js    tela Transporte
+armazem.js       tela Armazém
+tv.js            Modo TV
+app.js           navegação, relógio e velocidade
 ```
 
 ## Rodar no computador
