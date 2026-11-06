@@ -4,7 +4,7 @@ Painel de operação de um centro de distribuição de **e-commerce e varejo**, 
 
 > Projeto de portfólio. Empresas, transportadoras, motoristas e números são **fictícios**. As cidades e distâncias são reais (região do Triângulo Mineiro, interior de SP, GO e MS).
 
-**[▶ Abrir o painel](https://jmarcelogomesparreira.github.io/centro-distribuicao-3d/)**
+**[▶ Abrir o painel](https://jmarcelogomesparreira-ship-it.github.io/centro-distribuicao-3d/)**
 
 ![Modo TV](modo-tv.jpg)
 
@@ -75,4 +75,4 @@ Baixe a pasta e abra o `index.html` no navegador. Não precisa instalar nada. O 
 
 ---
 
-Desenvolvido por **Marcelo José Gomes Parreira** · [LinkedIn](https://www.linkedin.com/in/marcelo-jos%C3%A9-gomes-parreira-101b352ab) · [GitHub](https://github.com/jmarcelogomesparreira)
+Desenvolvido por **Marcelo José Gomes Parreira** · [LinkedIn](https://www.linkedin.com/in/marcelo-jos%C3%A9-gomes-parreira-101b352ab) · [GitHub](https://github.com/jmarcelogomesparreira-ship-it)
