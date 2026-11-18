@@ -12,8 +12,15 @@ NX.telas.galpao = (function () {
 
   /* ---------------- Medidas do site ---------------- */
   const GX = 80, GZ = 40, GH = 12, PISO = 1.2;
-  const FAIXA_Z = 65;                        // corredor de manobra no pátio
-  const PORTAO_Z = 140;
+  const FAIXA_Z = 70;                        // corredor de manobra em frente às docas
+  const PORTAO_Z = 176;
+  /* Vias do pátio (mão única) */
+  const VIA_ENTRA_X = -4, VIA_SAI_X = 4;     // pista de entrada (desce) e de saída (sobe)
+  const BAL_Z = 160;                         // centro das balanças de entrada e saída
+  const CORREDOR_Z = 115;                    // corredor entre as duas fileiras de vagas
+  const DOCA_ENTRA_Z = 73, DOCA_SAI_Z = 67;  // faixas de manobra em frente às docas
+  const ESTRADA_Z = 305;
+  const FILA1_Z = 92, FILA2_Z = 138;         // centro das duas fileiras de vagas
   const docaX = id => (id <= 6 ? -70 + (id - 1) * 10 : 20 + (id - 7) * 10);
   const COMP = { 'VUC': 7, 'Toco': 9, 'Truck': 11, 'Carreta': 18, 'Bitrem': 22, 'Truck frigorífico': 11, 'Carreta frigorífica': 18 };
   const COR_STATUS = {
@@ -23,7 +30,7 @@ NX.telas.galpao = (function () {
 
   /* vagas do pátio: 2 fileiras, 22 vagas cada */
   const VAGAS = [];
-  for (const z of [97, 124]) for (let k = 0; k < 11; k++) {
+  for (const z of [FILA1_Z, FILA2_Z]) for (let k = 0; k < 11; k++) {
     VAGAS.push({ x: -(10 + k * 6.4), z });
     VAGAS.push({ x: 10 + k * 6.4, z });
   }
@@ -95,14 +102,21 @@ NX.telas.galpao = (function () {
   /* ---------------- Construção do cenário ---------------- */
   function construirTerreno(g) {
     g.add(plano(1400, 1400, 0x1f2b1f, 0, -0.05, 60));                 // grama
-    g.add(plano(184, 104, 0x2a2e34, 0, 0.01, 90));                    // pátio
+    g.add(plano(184, 140, 0x2a2e34, 0, 0.01, 107));                   // pátio
     g.add(plano(184, 14, 0x2a2e34, 0, 0.01, -48));                    // contorno de trás
-    g.add(plano(18, 140, 0x262a30, 0, 0.012, 210));                   // acesso
+    g.add(plano(18, 112, 0x262a30, 0, 0.012, 232));                   // acesso
     g.add(plano(1400, 16, 0x24282d, 0, 0.012, 290));                  // rodovia
     // faixas da rodovia e do acesso
     const tracos = [];
     for (let x = -680; x < 680; x += 12) tracos.push({ x, y: 0.03, z: 290, w: 6, h: 0.02, d: 0.3, cor: 0xe5c84a });
-    for (let z = 150; z < 280; z += 10) tracos.push({ x: 0, y: 0.03, z, w: 0.3, h: 0.02, d: 5, cor: 0xe7edf4 });
+    for (let z = 180; z < 282; z += 10) tracos.push({ x: 0, y: 0.03, z, w: 0.3, h: 0.02, d: 5, cor: 0xe7edf4 });
+    // divisória das pistas de entrada e saída dentro do pátio
+    for (let z = 78; z < 172; z += 8) tracos.push({ x: 0, y: 0.03, z, w: 0.25, h: 0.02, d: 4, cor: 0xe7edf4 });
+    // setas de mão única
+    for (const z of [100, 130]) {
+      tracos.push({ x: VIA_ENTRA_X, y: 0.03, z, w: 0.5, h: 0.02, d: 3, cor: 0xe7edf4 });
+      tracos.push({ x: VIA_SAI_X, y: 0.03, z, w: 0.5, h: 0.02, d: 3, cor: 0xe7edf4 });
+    }
     // vagas do pátio
     for (const v of VAGAS) {
       tracos.push({ x: v.x - 3.2, y: 0.03, z: v.z, w: 0.18, h: 0.02, d: 23, cor: 0xc9d1da });
@@ -296,28 +310,32 @@ NX.telas.galpao = (function () {
   }
 
   function construirPortaria(g) {
-    // balança rodoviária
-    pos(g, caixa(4.4, 0.25, 20, 0x8a929b), -4, 0.12, 128);
-    pos(g, caixa(4.8, 0.12, 0.3, 0xf5a524), -4, 0.2, 117.9);
-    pos(g, caixa(4.8, 0.12, 0.3, 0xf5a524), -4, 0.2, 138.1);
+    // duas balanças rodoviárias: entrada (pista da esquerda) e saída (pista da direita)
+    for (const x of [VIA_ENTRA_X, VIA_SAI_X]) {
+      pos(g, caixa(4.4, 0.25, 20, 0x8a929b), x, 0.12, BAL_Z);
+      pos(g, caixa(4.8, 0.12, 0.3, 0xf5a524), x, 0.2, BAL_Z - 10.1);
+      pos(g, caixa(4.8, 0.12, 0.3, 0xf5a524), x, 0.2, BAL_Z + 10.1);
+    }
+    const lbBe = rotulo('Balança · entrada', { escala: 1.8 }); lbBe.position.set(VIA_ENTRA_X - 4, 5, BAL_Z); g.add(lbBe);
+    const lbBs = rotulo('Balança · saída', { escala: 1.8 }); lbBs.position.set(VIA_SAI_X + 4, 5, BAL_Z); g.add(lbBs);
     // guarita
-    pos(g, caixa(5, 3.2, 4, 0xd5dbe2), 14, 1.6, 141);
-    pos(g, caixa(6, 0.4, 5, 0x3a434e), 14, 3.4, 141);
+    pos(g, caixa(5, 3.2, 4, 0xd5dbe2), 14, 1.6, PORTAO_Z + 2);
+    pos(g, caixa(6, 0.4, 5, 0x3a434e), 14, 3.4, PORTAO_Z + 2);
     const vg = new THREE.MeshStandardMaterial({ color: 0x1a2533, roughness: 0.2, metalness: 0.4 });
-    pos(g, caixa(5.05, 1.2, 2.5, vg), 14, 2.1, 141);
+    pos(g, caixa(5.05, 1.2, 2.5, vg), 14, 2.1, PORTAO_Z + 2);
     // cancelas
     pos(g, caixa(8, 0.18, 0.18, 0xe5484d), -5, 1.1, PORTAO_Z);
     pos(g, caixa(8, 0.18, 0.18, 0xe5484d), 5, 1.1, PORTAO_Z);
     pos(g, caixa(0.5, 1.2, 0.5, 0x2a2e34), -9.4, 0.6, PORTAO_Z);
     pos(g, caixa(0.5, 1.2, 0.5, 0x2a2e34), 9.4, 0.6, PORTAO_Z);
-    const lb = rotulo('Portaria · Balança', { escala: 2.4 });
-    lb.position.set(4, 8, 141); g.add(lb);
+    const lb = rotulo('Portaria', { escala: 2.4 });
+    lb.position.set(14, 8, PORTAO_Z + 2); g.add(lb);
     const lp = rotulo('Pátio de caminhões', { escala: 2.4 });
-    lp.position.set(0, 9, 111); g.add(lp);
+    lp.position.set(-45, 9, CORREDOR_Z); g.add(lp);
 
     // postes de iluminação do pátio
     const postes = [], cabecas = [];
-    for (const x of [-90, 90]) for (const z of [50, 80, 110, 136]) {
+    for (const x of [-90, 90]) for (const z of [50, 82, 115, 148, 172]) {
       postes.push({ x, y: 6, z, w: 0.35, h: 12, d: 0.35 });
       cabecas.push({ x: x * 0.97, y: 12, z, w: 2.2, h: 0.3, d: 0.8 });
     }
@@ -370,116 +388,291 @@ NX.telas.galpao = (function () {
     return gr;
   }
 
-  function aoLongo(pts, p) {
-    const segs = []; let tot = 0;
-    for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z) || 0.001; segs.push(l); tot += l; }
-    let d = Math.max(0, Math.min(1, p)) * tot;
-    for (let i = 0; i < segs.length; i++) {
-      if (d <= segs[i] || i === segs.length - 1) {
-        const f = Math.min(1, d / segs[i]), a = pts[i], b = pts[i + 1];
-        return { x: a.x + (b.x - a.x) * f, z: a.z + (b.z - a.z) * f, rot: b.rot };
-      }
-      d -= segs[i];
-    }
-    return pts[pts.length - 1];
-  }
+  /* ---------------- Movimento dos caminhões ----------------
+     Cada caminhão segue uma rota de pontos (pelo CENTRO do veículo),
+     anda em velocidade constante, gira no lugar antes de mudar de direção,
+     respeita a mão das pistas, para nas balanças e não entra em outro caminhão. */
+  const VEL = 16, GIRO = 2.2;                 // m/s e rad/s na velocidade 60× (tempo acelerado)
+  const ATIVOS_DOCA = ['manobra', 'operando', 'conferencia', 'aguardando_nf'];
+  const angulo = a => Math.atan2(Math.sin(a), Math.cos(a));
+  const fator = () => Math.max(0.6, Math.min(8, NX.sim.velocidade / 60));
+  const MAX_CAMINHOES = 45;
+  const docadoZ = rec => GZ + 0.9 + rec.len / 2;
 
-  /* Onde cada caminhão deveria estar agora, conforme a fase */
-  function alvoCaminhao(c, rec) {
-    const S = NX.sim, len = rec.len;
-    const dx = c.doca ? docaX(c.doca) : 0;
-    const naDoca = { x: dx, z: GZ + 0.9, rot: 0 };
-    const prog = (ini, fim) => (S.t - ini) / Math.max(0.01, fim - ini);
-    switch (c.status) {
-      case 'portaria': {
-        const fila = st.filaPortaria.indexOf(c.id);
-        return { x: -4, z: 118 + Math.max(0, fila) * 26 + len, rot: Math.PI };
-      }
-      case 'patio': {
-        const v = VAGAS[rec.vaga] || { x: -4, z: 112 };
-        return { x: v.x, z: v.z - len / 2, rot: 0 };
-      }
-      case 'manobra': {
-        const ini = rec.vagaPos || { x: -4, z: 118 };
-        const lado = Math.sign(dx - ini.x) || 1;
-        return aoLongo([
-          { x: ini.x, z: ini.z, rot: 0 },
-          { x: ini.x, z: FAIXA_Z, rot: 0 },
-          { x: ini.x + lado * 0.1, z: FAIXA_Z, rot: lado * Math.PI / 2 },
-          { x: dx, z: FAIXA_Z, rot: lado * Math.PI / 2 },
-          { x: dx, z: FAIXA_Z + 0.1, rot: 0 },
-          naDoca
-        ], prog(c.tempos.chamado, c.fimFase));
-      }
-      case 'operando': case 'conferencia': case 'aguardando_nf':
-        return naDoca;
-      case 'liberado': {
-        const ini = c.operacao === 'entrada' ? c.tempos.fimConf : c.tempos.nf;
-        const lado = Math.sign(4 - dx) || 1;
-        return aoLongo([
-          naDoca,
-          { x: dx, z: FAIXA_Z, rot: 0 },
-          { x: dx + lado * 0.1, z: FAIXA_Z, rot: lado * Math.PI / 2 },
-          { x: 4, z: FAIXA_Z, rot: lado * Math.PI / 2 },
-          { x: 4, z: FAIXA_Z + 0.1, rot: 0 },
-          { x: 4, z: 150, rot: 0 }
-        ], prog(ini, c.fimFase));
-      }
+  function aplicarPose(rec) {
+    rec.g.rotation.y = rec.r;
+    rec.g.position.set(rec.cx - Math.sin(rec.r) * rec.len / 2, 0, rec.cz - Math.cos(rec.r) * rec.len / 2);
+  }
+  function eixo(cx, cz, r, len) {
+    const h = Math.max(0, len / 2 - 1.3), sx = Math.sin(r) * h, sz = Math.cos(r) * h;
+    return [cx - sx, cz - sz, cx + sx, cz + sz];
+  }
+  function distSeg(a, b) {
+    const pt = (px, pz, s) => {
+      const vx = s[2] - s[0], vz = s[3] - s[1], l2 = vx * vx + vz * vz;
+      const t = l2 ? Math.max(0, Math.min(1, ((px - s[0]) * vx + (pz - s[1]) * vz) / l2)) : 0;
+      return Math.hypot(px - (s[0] + t * vx), pz - (s[1] + t * vz));
+    };
+    return Math.min(pt(a[0], a[1], b), pt(a[2], a[3], b), pt(b[0], b[1], a), pt(b[2], b[3], a));
+  }
+  /* Devolve o caminhão que impede o próximo passo (andar ou girar), ou null.
+     - longe (>= 3,5 m entre eixos): livre
+     - nunca pode chegar mais perto de quem já está perto
+     - ao andar, quem está à frente (no sentido do movimento) sempre bloqueia */
+  function bloqueado(rec, nx, nz, nr) {
+    const r1 = nr == null ? rec.r : nr;
+    const a1 = eixo(nx, nz, r1, rec.len), a0 = eixo(rec.cx, rec.cz, rec.r, rec.len);
+    const mx = nx - rec.cx, mz = nz - rec.cz, gira = nr != null;
+    for (const o of st.caminhoes.values()) {
+      if (o === rec) continue;
+      const b = eixo(o.cx, o.cz, o.r, o.len);
+      const d1 = distSeg(a1, b);
+      if (d1 >= 3.5) continue;
+      const d0 = distSeg(a0, b);
+      if (d1 < d0 - 1e-4) return o;
+      if (!gira && (o.cx - rec.cx) * mx + (o.cz - rec.cz) * mz > 0) return o;
     }
     return null;
+  }
+  /* espera quem está bloqueado; em impasse mútuo, um dos dois passa */
+  function podePassar(rec, o, dt, gira) {
+    rec.girando = !!gira;
+    if (!o) { rec.bloqueadoPor = null; rec.espera = 0; return true; }
+    rec.bloqueadoPor = o; rec.espera += dt;
+    const ob = o.bloqueadoPor;
+    const mutuo = ob === rec || (ob && ob.bloqueadoPor === rec);
+    if (!mutuo || rec.espera < 1.5) return false;
+    // impasse: quem está manobrando (girando no lugar) termina primeiro e sai na frente
+    if (!!gira !== !!o.girando) return !!gira;
+    return rec.c.id < o.c.id;
+  }
+  function girar(rec, alvoR, dt, F) {
+    const dr = angulo(alvoR - rec.r);
+    const nr = angulo(rec.r + Math.sign(dr) * Math.min(Math.abs(dr), GIRO * F * dt));
+    if (podePassar(rec, bloqueado(rec, rec.cx, rec.cz, nr), dt, true)) rec.r = nr;
+  }
+
+  /* Reservas de manobra. Cada zona tem dono; quem não é dono espera FORA dela,
+     num ponto que não atrapalha ninguém:
+     - doca: em frente às docas, um caminhão por vez encosta de ré ou sai, num raio de 25 m
+     - corredor: corredor entre as fileiras de vagas (entrar/sair de vaga e cruzar o corredor)
+     - cruz: cruzamento central em frente às docas, onde a pista de entrada vira para as docas
+       e as duas faixas de saída se juntam na pista que leva à balança */
+  const CRUZ_X = 16, CRUZ_Z = 88;
+  const TUDO = [-1e9, 1e9];
+  const ZONAS = {
+    doca: { x0: -1e9, x1: 1e9, z0: DOCA_SAI_Z - 5, z1: DOCA_ENTRA_Z + 5, margem: 28 },
+    corredor: { x0: -1e9, x1: 1e9, z0: CORREDOR_Z - 8, z1: CORREDOR_Z + 8, margem: 1 },
+    cruz: { x0: -CRUZ_X, x1: CRUZ_X, z0: DOCA_SAI_Z - 8, z1: CRUZ_Z, margem: 1e9 }
+  };
+  const naZona = (rec, Z) => rec.cz > Z.z0 && rec.cz < Z.z1 && rec.cx > Z.x0 && rec.cx < Z.x1;
+  const cruza = (a, b, c, d) => a < d && c < b;                // intervalos [a,b] e [c,d] se encostam
+  /* cada reserva é um trecho [a, b] no eixo x da zona */
+  function podeReservar(rec, zona, a, b, docaLivre) {
+    const Z = ZONAS[zona];
+    if (rec.res[zona]) return true;
+    for (const o of st.caminhoes.values()) {
+      if (o === rec) continue;
+      const r = o.res[zona];
+      if (r && cruza(r.a, r.b, a, b)) return false;
+      // ninguém passando por perto na faixa
+      if (!o.naDoca && naZona(o, Z) && cruza(o.cx - o.len / 2, o.cx + o.len / 2, a - Z.margem, b + Z.margem)) return false;
+      if (docaLivre && Math.abs(o.cx - (a + b) / 2) < 2 && o.cz < DOCA_SAI_Z - 2) return false;
+    }
+    return true;
+  }
+  /* w.reservas = [[zona, a, b], ...] — pega todas de uma vez ou nenhuma */
+  function reservar(rec, w) {
+    if (!w.reservas.every(([z, a, b]) => podeReservar(rec, z, a, b, w.docaLivre))) return false;
+    for (const [z, a, b] of w.reservas) if (!rec.res[z]) rec.res[z] = { a, b, x: (a + b) / 2, saida: !!w.saida, entrou: false };
+    return true;
+  }
+  function conferirReservas(rec) {
+    for (const zona in rec.res) {
+      const m = rec.res[zona];
+      if (!m || !m.saida) continue;
+      if (naZona(rec, ZONAS[zona])) m.entrou = true;
+      else if (m.entrou) { rec.res[zona] = null; continue; }
+      if (zona === 'doca' && Math.abs(rec.cx - m.x) > 14) rec.res[zona] = null;
+    }
+  }
+  const resDoca = dx => ['doca', dx - 12.5, dx + 12.5];
+  const resCruz = () => ['cruz', ...TUDO];
+  const resCorredorVaga = (rec, vx) => ['corredor', Math.min(VIA_ENTRA_X, vx) - rec.len / 2 - 1, Math.max(VIA_ENTRA_X, vx) + rec.len / 2 + 1];
+  const resCorredorEntra = () => ['corredor', VIA_ENTRA_X - 2, VIA_ENTRA_X + 2];
+  const resCorredorSai = () => ['corredor', VIA_SAI_X - 1.5, VIA_SAI_X + 1.5];
+
+  /* pontos de espera (pelo centro do caminhão), sempre fora da zona pedida */
+  const esperaCorredorEntrada = (rec, vx) => ({ x: VIA_ENTRA_X, z: CORREDOR_Z + 9 + rec.len / 2, reservas: [vx == null ? resCorredorEntra() : resCorredorVaga(rec, vx)], saida: true });
+  const esperaCruzEntrada = rec => ({ x: VIA_ENTRA_X, z: CRUZ_Z + 1 + rec.len / 2, reservas: [resCruz()], saida: true });
+
+  /* trechos de rota */
+  function rotaParaDoca(rec) {
+    const dx = docaX(rec.c.doca);
+    return [
+      esperaCruzEntrada(rec),
+      { x: VIA_ENTRA_X, z: DOCA_ENTRA_Z },
+      { x: dx, z: DOCA_ENTRA_Z },
+      { x: dx, z: DOCA_ENTRA_Z, r: 0, reservas: [resDoca(dx)], docaLivre: true },   // alinha de ré para a doca
+      { x: dx, z: docadoZ(rec), re: true,
+        chegou: r => { r.naDoca = true; r.res.doca = null; },
+        ate: r => !ATIVOS_DOCA.includes(r.c.status),
+        depois: planoSaida }
+    ];
+  }
+  function planoSaida(rec) {
+    rec.naDoca = false; rec.saindoPorta = true;
+    const dx = rec.c.doca ? docaX(rec.c.doca) : rec.cx;
+    const lado = dx < 0 ? -1 : 1;
+    const ex = lado * (CRUZ_X + 2 + rec.len / 2);              // espera fora do cruzamento
+    const longe = Math.abs(dx) > Math.abs(ex);
+    // o caminhão só desencosta da doca quando tem a vez; se a doca é perto do cruzamento,
+    // já pega também o cruzamento e o corredor (não dá para esperar no meio da faixa)
+    const vez = longe ? [resDoca(dx)] : [resDoca(dx), resCruz(), resCorredorSai()];
+    rec.rota = [
+      { x: dx, z: DOCA_SAI_Z, reservas: vez, saida: true },
+      ...(longe ? [{ x: ex, z: DOCA_SAI_Z }] : []),
+      // só entra no cruzamento quando também puder cruzar o corredor das vagas
+      { x: VIA_SAI_X, z: DOCA_SAI_Z, reservas: [resCruz(), resCorredorSai()], saida: true },
+      { x: VIA_SAI_X, z: BAL_Z, pausa: 2.2 },                  // pesagem de saída
+      { x: VIA_SAI_X, z: ESTRADA_Z, depois: remover }
+    ];
+  }
+  function planoVaga(rec) {
+    const ocupadas = new Set([...st.caminhoes.values()].map(r => r.vaga).filter(v => v != null));
+    let livre = VAGAS.findIndex((_, i) => !ocupadas.has(i));
+    if (livre < 0) livre = 0;
+    rec.vaga = livre;
+    const v = VAGAS[livre];
+    rec.rota = [
+      esperaCorredorEntrada(rec, v.x),
+      { x: VIA_ENTRA_X, z: CORREDOR_Z },
+      { x: v.x, z: CORREDOR_Z },
+      { x: v.x, z: v.z, chegou: r => { r.res.corredor = null; }, ate: r => r.c.status !== 'patio', depois: planoSairVaga }
+    ];
+  }
+  function planoSairVaga(rec) {
+    const v = VAGAS[rec.vaga];
+    rec.rota = [
+      { x: v.x, z: CORREDOR_Z, re: true, reservas: [resCorredorVaga(rec, v.x)], saida: true, depois: r => { r.vaga = null; } },
+      { x: VIA_ENTRA_X, z: CORREDOR_Z },
+      ...rotaParaDoca(rec)
+    ];
+  }
+  function aposBalanca(rec) {
+    if (rec.c.status === 'patio') return planoVaga(rec);
+    if (rec.c.doca && (ATIVOS_DOCA.includes(rec.c.status) || rec.c.status === 'liberado')) { rec.rota = [esperaCorredorEntrada(rec), ...rotaParaDoca(rec)]; return; }
+    if (rec.c.status === 'finalizado' || rec.c.status === 'liberado') { rec.rota = [{ x: VIA_ENTRA_X, z: DOCA_SAI_Z }]; return planoSaidaDireta(rec); }
+    rec.rota = [{ x: VIA_ENTRA_X, z: BAL_Z, ate: r => r.c.status !== 'portaria', depois: aposBalanca }];
+  }
+  function planoSaidaDireta(rec) { rec.rota.push({ x: VIA_SAI_X, z: DOCA_SAI_Z }, { x: VIA_SAI_X, z: BAL_Z, pausa: 2.2 }, { x: VIA_SAI_X, z: ESTRADA_Z, depois: remover }); }
+  function planoChegada(rec) {
+    rec.rota = [{ x: VIA_ENTRA_X, z: BAL_Z, pausa: 2.2, ate: r => r.c.status !== 'portaria', depois: aposBalanca }];
+  }
+  function remover(rec) {
+    rec.res = {};
+    st.grupoCaminhoes.remove(rec.g);
+    st.caminhoes.delete(rec.c.id);
+    if (st.selecionado && st.selecionado.tipo === 'caminhao' && st.selecionado.id === rec.c.id) mostrarDetalhe(st.selecionado);
+  }
+
+  /* posição inicial de quem já estava no CD quando a tela abriu */
+  function posicionarInicial(rec) {
+    const c = rec.c;
+    if (c.status === 'patio') {
+      planoVaga(rec);
+      const v = VAGAS[rec.vaga];
+      rec.cx = v.x; rec.cz = v.z; rec.r = v.z > CORREDOR_Z ? 0 : Math.PI;
+      rec.rota = rec.rota.slice(-1);
+    } else if (c.doca && ATIVOS_DOCA.includes(c.status) && !st.docasIniciais.has(c.doca)) {
+      st.docasIniciais.add(c.doca);
+      rec.cx = docaX(c.doca); rec.cz = docadoZ(rec); rec.r = 0;
+      rec.rota = rotaParaDoca(rec).slice(-1);
+      rec.naDoca = true;
+    } else return false;                                       // entra pela portaria normalmente
+    return true;
+  }
+  function entradaLivre() {
+    for (const o of st.caminhoes.values()) if (Math.abs(o.cx - VIA_ENTRA_X) < 3 && o.cz > ESTRADA_Z - 30) return false;
+    return true;
   }
 
   function sincronizarCaminhoes() {
     const S = NX.sim;
     const ativos = S.caminhoes.filter(c => c.status !== 'finalizado');
-    st.filaPortaria = ativos.filter(c => c.status === 'portaria').sort((a, b) => a.tempos.chegada - b.tempos.chegada).map(c => c.id);
-    const ids = new Set(ativos.map(c => c.id));
-
-    // saídas: quem finalizou segue pela rodovia e some
-    for (const [id, rec] of st.caminhoes) {
-      if (!ids.has(id) && !rec.saindo) { rec.saindo = true; rec.alvo = { x: 4, z: 330, rot: 0 }; }
-    }
+    st.filaPortaria = ativos.filter(c => c.status === 'portaria').map(c => c.id);
+    const novo = c => {
+      const g = criarCaminhao(c);
+      return { g, c, len: g.userData.len, vaga: null, rota: [], res: {}, parado: 0, espera: 0, naDoca: false, cx: 0, cz: 0, r: 0 };
+    };
+    const incluir = rec => { aplicarPose(rec); st.grupoCaminhoes.add(rec.g); st.caminhoes.set(rec.c.id, rec); };
     for (const c of ativos) {
-      let rec = st.caminhoes.get(c.id);
-      if (!rec) {
-        const g = criarCaminhao(c);
-        rec = { g, len: g.userData.len, vaga: null, vagaPos: null, saindo: false };
-        const novo = c.status === 'portaria';
-        g.position.set(novo ? -4 : 4, 0, novo ? 330 : 150);
-        g.rotation.y = novo ? Math.PI : 0;
-        st.grupoCaminhoes.add(g);
-        st.caminhoes.set(c.id, rec);
+      const rec = st.caminhoes.get(c.id);
+      if (rec) { rec.c = c; continue; }
+      if (st.pendentes.has(c.id)) continue;
+      if (st.primeiraCarga) {
+        const r = novo(c);
+        if (posicionarInicial(r)) { incluir(r); continue; }
+        st.grupoCaminhoes.remove(r.g);
       }
-      // vaga no pátio
-      if (c.status === 'patio' && rec.vaga == null) {
-        const ocupadas = new Set([...st.caminhoes.values()].map(r => r.vaga).filter(v => v != null));
-        const livre = VAGAS.findIndex((_, i) => !ocupadas.has(i));
-        rec.vaga = livre >= 0 ? livre : null;
-      }
-      if (c.status !== 'patio' && rec.vaga != null) {
-        const v = VAGAS[rec.vaga];
-        rec.vagaPos = { x: v.x, z: v.z - rec.len / 2 };
-        rec.vaga = null;
-      }
-      rec.c = c;
+      st.pendentes.set(c.id, c);                               // aguarda a vez de entrar pela rodovia
+    }
+    st.primeiraCarga = false;
+    // fila da rodovia: entra um de cada vez, só quando a pista está livre
+    for (const [id, c] of st.pendentes) {
+      if (c.status === 'finalizado' || !ativos.includes(c)) { st.pendentes.delete(id); continue; }
+    }
+    // caminhões do 3D que ficaram muito atrás da simulação saem de cena (velocidades altas)
+    for (const rec of [...st.caminhoes.values()]) {
+      if (rec.c.status === 'finalizado' && !rec.naDoca && !rec.saindoPorta && rec.cz > DOCA_ENTRA_Z + 5 && Math.abs(rec.cx - VIA_SAI_X) > 1) remover(rec);
+    }
+    if (st.pendentes.size && st.caminhoes.size < MAX_CAMINHOES && entradaLivre()) {
+      const [id, c] = st.pendentes.entries().next().value;
+      st.pendentes.delete(id);
+      const rec = novo(c);
+      rec.cx = VIA_ENTRA_X; rec.cz = ESTRADA_Z; rec.r = Math.PI;
+      planoChegada(rec);
+      incluir(rec);
     }
   }
 
+  function andar(rec, dt, F) {
+    conferirReservas(rec);
+    const w = rec.rota[0];
+    if (!w) return;
+    if (w.reservas && !reservar(rec, w)) return;
+    const dx = w.x - rec.cx, dz = w.z - rec.cz, d = Math.hypot(dx, dz);
+    if (d > 0.05) {
+      const alvoR = w.re ? Math.atan2(-dx, -dz) : Math.atan2(dx, dz);
+      const dr = angulo(alvoR - rec.r);
+      if (Math.abs(dr) > 0.01) { girar(rec, alvoR, dt, F); return; }
+      rec.r = alvoR;
+      const passo = Math.min(d, VEL * F * dt * (w.re ? 0.55 : 1));
+      const nx = rec.cx + dx / d * passo, nz = rec.cz + dz / d * passo;
+      if (!podePassar(rec, bloqueado(rec, nx, nz), dt)) return;
+      rec.cx = nx; rec.cz = nz;
+      return;
+    }
+    rec.cx = w.x; rec.cz = w.z;
+    if (w.r != null) {
+      const dr = angulo(w.r - rec.r);
+      if (Math.abs(dr) > 0.01) { girar(rec, w.r, dt, F); return; }
+      rec.r = w.r;
+    }
+    if (!w._chegou) { w._chegou = true; rec.parado = 0; if (w.chegou) w.chegou(rec); }
+    rec.parado += dt * F;
+    if (w.pausa && rec.parado < w.pausa) return;
+    if (w.ate && !w.ate(rec)) return;
+    rec.rota.shift();
+    if (w.depois) w.depois(rec);
+  }
+
   function moverCaminhoes(dt) {
-    const k = 1 - Math.exp(-dt * 4);
-    for (const [id, rec] of st.caminhoes) {
-      const alvo = rec.saindo ? rec.alvo : (rec.c && alvoCaminhao(rec.c, rec));
-      if (!alvo) continue;
-      const g = rec.g;
-      g.position.x += (alvo.x - g.position.x) * k;
-      g.position.z += (alvo.z - g.position.z) * k;
-      let dr = alvo.rot - g.rotation.y;
-      dr = Math.atan2(Math.sin(dr), Math.cos(dr));
-      g.rotation.y += dr * Math.min(1, k * 1.6);
-      if (rec.saindo && g.position.z > 300) {
-        st.grupoCaminhoes.remove(g);
-        st.caminhoes.delete(id);
-      }
+    if (NX.sim.pausado) return;
+    const F = fator();
+    for (const rec of [...st.caminhoes.values()]) {
+      andar(rec, dt, F);
+      if (st.caminhoes.has(rec.c.id)) aplicarPose(rec);
     }
   }
 
@@ -500,7 +693,8 @@ NX.telas.galpao = (function () {
         v.lb._chave = chave;
       }
       const c = d.caminhao && S.caminhao(d.caminhao);
-      st.empilhadeiras[d.id].visible = !!(c && c.status === 'operando');
+      const rc = c && st.caminhoes.get(c.id);
+      st.empilhadeiras[d.id].visible = !!(c && c.status === 'operando' && rc && rc.naDoca);
       st.empilhadeiras[d.id].userData.op = c && c.operacao;
       st.empilhadeiras[d.id].userData.frio = d.fria;
     }
@@ -633,11 +827,11 @@ NX.telas.galpao = (function () {
 
   /* ---------------- Câmera ---------------- */
   const VISTAS = {
-    geral: { pos: [118, 82, 168], alvo: [0, 0, 42] },
+    geral: { pos: [128, 92, 200], alvo: [0, 0, 60] },
     docas: { pos: [-48, 30, 112], alvo: [-8, 3, 42] },
-    patio: { pos: [-130, 70, 190], alvo: [0, 0, 100] },
+    patio: { pos: [-120, 75, 235], alvo: [0, 0, 120] },
     interno: { pos: [70, 58, 55], alvo: [0, 2, -5], semTelhado: true },
-    topo: { pos: [0, 300, 61], alvo: [0, 0, 60] }
+    topo: { pos: [0, 330, 80], alvo: [0, 0, 79] }
   };
   function irPara(nome) {
     const v = VISTAS[nome];
@@ -715,7 +909,7 @@ NX.telas.galpao = (function () {
     const raiz = el.querySelector('.g3d');
     const alvo = raiz.querySelector('.g3d-canvas');
     st = {
-      raiz, clicaveis: [], caminhoes: new Map(), filaPortaria: [], tempoEmp: 0,
+      raiz, clicaveis: [], caminhoes: new Map(), pendentes: new Map(), docasIniciais: new Set(), filaPortaria: [], tempoEmp: 0, primeiraCarga: true,
       hudChips: raiz.querySelector('.g3d-chips'), detalhe: raiz.querySelector('.g3d-detalhe'), selecionado: null
     };
 
@@ -753,7 +947,7 @@ NX.telas.galpao = (function () {
     st.luzesInternas = [[-50, -15], [0, -15], [50, -15], [-45, 25], [45, 25]].map(([x, z]) => {
       const l = new THREE.PointLight(0xfff1d6, 0.6, 85, 1.6); l.position.set(x, PISO + 9.5, z); cena.add(l); return l;
     });
-    st.luzesPatio = [[-70, 70], [70, 70], [-70, 120], [70, 120], [0, 136]].map(([x, z]) => {
+    st.luzesPatio = [[-70, 70], [70, 70], [-70, 130], [70, 130], [0, 165]].map(([x, z]) => {
       const l = new THREE.PointLight(0xffd99a, 0, 80, 1.5); l.position.set(x, 12, z); cena.add(l); return l;
     });
 
